@@ -40,8 +40,6 @@
 
 (defun make (&key (executable-name *installation-file*) (source-file "serve.lisp"))
   "Compiles the current state into an executable"
-  (progn
-    (if source-file
-        (load (compile-file source-file))
-        nil)
-    (save-lisp-and-die executable-name :toplevel #'main :executable t)))
+  (when source-file
+    (load (compile-file source-file)))
+  (save-lisp-and-die executable-name :toplevel #'main :executable t))
