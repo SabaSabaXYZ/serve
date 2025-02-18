@@ -1,3 +1,5 @@
+(push :hunchentoot-no-ssl *features*)
+
 (ql:quickload '(:hunchentoot :find-port))
 
 (defvar *installation-file* "C:/bin/serve.exe" "The filepath to install to when running (make)")
@@ -25,6 +27,14 @@
         while line
         until (zerop (length line))))
 
+(hunchentoot:define-easy-handler (process-submit-form :uri "/submit-form") ()
+  (setf (hunchentoot:content-type*) "text/plain")
+  (format nil "~{~a~%~}"
+          (loop for pair in (hunchentoot:post-parameters*)
+                for name = (car pair)
+                for value = (cdr pair)
+                collect (format nil "~a → ~a" name value))))
+
 (defun main ()
   (die-on-error
     (let* ((port (grab-argument second parse-integer (find-port:find-port)))
@@ -38,8 +48,6 @@
       (wait-until-empty-line)
       (hunchentoot:stop server))))
 
-(defun make (&key (executable-name *installation-file*) (source-file "serve.lisp"))
+(defun make (&key (executable-name *installation-file*))
   "Compiles the current state into an executable"
-  (when source-file
-    (load (compile-file source-file)))
   (save-lisp-and-die executable-name :toplevel #'main :executable t))
